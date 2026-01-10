@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="header">
+    <view class="title">微信维修管理助手</view>
+    <view class="subtitle">高效 • 便捷 • 专业</view>
+  </view>
+  
+  <view class="menu-grid">
+    <view class="menu-card" bindtap="navTo" data-url="/pages/module1/module1">
+      <view class="icon">📋</view>
+      <view class="card-content">
+        <text class="card-title">维修清单生成</text>
+        <text class="card-desc">模块一：快速生成维修保养清单</text>
+      </view>
+    </view>
+    
+    <view class="menu-card" bindtap="navTo" data-url="/pages/module2/module2">
+      <view class="icon">✅</view>
+      <view class="card-content">
+        <text class="card-title">验收单生成</text>
+        <text class="card-desc">模块二：自动生成标准化验收单</text>
+      </view>
+    </view>
+    
+    <view class="menu-card" bindtap="navTo" data-url="/pages/module3/module3">
+      <view class="icon">✏️</view>
+      <view class="card-content">
+        <text class="card-title">PDF单据编辑</text>
+        <text class="card-desc">模块三：智能解析与修改PDF</text>
+      </view>
+    </view>
+    
+    <view class="menu-card" bindtap="navTo" data-url="/pages/module4/module4">
+      <view class="icon">🖼️</view>
+      <view class="card-content">
+        <text class="card-title">图片嵌入</text>
+        <text class="card-desc">模块四：验收单批量插入图片</text>
+      </view>
+    </view>
+    
+    <view class="menu-card" bindtap="navTo" data-url="/pages/module5/module5">
+      <view class="icon">📄</view>
+      <view class="card-content">
+        <text class="card-title">履约能力函</text>
+        <text class="card-desc">模块五：生成履约能力确认函</text>
+      </view>
+    </view>
+  </view>
+  
+  <view class="footer">
+    <text>© 2024 维修管理系统</text>
+  </view>
+</view>

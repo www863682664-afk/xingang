@@ -1,0 +1,71 @@
+<view class="container">
+  <view class="hero-section" wx:if="{{!parsedData}}">
+    <view class="hero-icon">📄</view>
+    <view class="hero-text">导入 PDF 或 Excel 自动解析</view>
+    <button class="btn btn-primary btn-large" bindtap="choosePdf">选择文件</button>
+  </view>
+
+  <view wx:else>
+    <view class="card">
+      <view class="section-header">
+        <text class="section-title">基本信息</text>
+        <button class="btn-mini" bindtap="choosePdf">重新导入</button>
+      </view>
+      
+      <view class="form-group">
+        <text class="label">维修单位</text>
+        <input class="input" value="{{repairUnit}}" bindinput="inputRepairUnit" />
+      </view>
+      <view class="form-group">
+        <text class="label">维修地点</text>
+        <input class="input" value="{{repairLocation}}" bindinput="inputRepairLocation" />
+      </view>
+      <view class="form-group">
+        <text class="label">维修车辆</text>
+        <input class="input" value="{{vehicle}}" bindinput="inputVehicle" />
+      </view>
+    </view>
+    
+    <!-- Table Reuse Logic -->
+    <view class="card">
+      <view class="table-header">
+        <text class="section-title">解析明细</text>
+      </view>
+      <view class="table">
+        <view class="tr th">
+          <view class="col-name th">项目</view>
+          <view class="col-qty th">数量</view>
+          <view class="col-unit th">单位</view>
+          <view class="col-price th">单价</view>
+          <view class="col-labor th">工费</view>
+          <view class="col-spec th">规格</view>
+          <view class="col-action th">删</view>
+        </view>
+        <block wx:for="{{items}}" wx:key="index">
+          <view class="tr">
+            <view class="td col-name"><input value="{{item.name}}" data-index="{{index}}" data-field="name" bindinput="inputItem" placeholder="名称"/></view>
+            <view class="td col-qty"><input type="number" value="{{item.quantity}}" data-index="{{index}}" data-field="quantity" bindinput="inputItem" placeholder="1"/></view>
+            <view class="td col-unit"><input value="{{item.unit}}" data-index="{{index}}" data-field="unit" bindinput="inputItem" placeholder="个"/></view>
+            <view class="td col-price"><input type="digit" value="{{item.price}}" data-index="{{index}}" data-field="price" bindinput="inputItem" placeholder="0"/></view>
+            <view class="td col-labor"><input type="digit" value="{{item.laborCost}}" data-index="{{index}}" data-field="laborCost" bindinput="inputItem" placeholder="0"/></view>
+            <view class="td col-spec"><input value="{{item.spec}}" data-index="{{index}}" data-field="spec" bindinput="inputItem" placeholder="规格"/></view>
+            <view class="td col-action" bindtap="deleteRow" data-index="{{index}}">×</view>
+          </view>
+        </block>
+      </view>
+      
+      <view class="action-bar">
+        <button class="btn btn-add" bindtap="addRow">+ 添加项目</button>
+      </view>
+    </view>
+
+    <view class="footer-action">
+      <button class="btn btn-primary" bindtap="submitUpdate">生成修改后的 PDF</button>
+    </view>
+  </view>
+  
+  <view wx:if="{{!parsedData && rawText}}" class="card raw-text-card">
+    <text class="section-title">解析文本预览</text>
+    <text class="raw-text-content">{{rawText}}</text>
+  </view>
+</view>

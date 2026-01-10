@@ -1,0 +1,197 @@
+/* Page Background */
+page {
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.container {
+  padding: 30rpx;
+  padding-bottom: 120rpx; /* Space for footer */
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  margin-bottom: 30rpx;
+  background: #e0e0e0;
+  border-radius: 16rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.tab.active {
+  background-color: #fff;
+  color: #007aff;
+  font-weight: bold;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.1);
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+  border-left: 8rpx solid #007aff;
+  padding-left: 16rpx;
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.form-group:last-child {
+  border-bottom: none;
+}
+
+.label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  font-size: 24rpx;
+}
+
+.tr {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.th {
+  background: #f8f9fa;
+  color: #666;
+  font-weight: bold;
+  padding: 16rpx 4rpx;
+  text-align: center;
+}
+
+.td {
+  padding: 12rpx 4rpx;
+  text-align: center;
+  border-bottom: 1rpx solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.td input {
+  width: 100%;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+/* Column Widths */
+.col-name { flex: 3; }
+.col-qty { flex: 1; }
+.col-unit { flex: 1; position: relative; }
+.col-price { flex: 1.5; }
+.col-labor { flex: 1.5; }
+.col-spec { flex: 1.5; }
+.col-action { flex: 0.8; color: #ff3b30; font-weight: bold; }
+
+/* Picker */
+.picker-inner {
+  background: #f0f0f0;
+  border-radius: 8rpx;
+  padding: 4rpx;
+}
+
+/* Subtotal Row */
+.sum-row {
+  justify-content: flex-end;
+  padding: 10rpx 20rpx;
+  background: #fafafa;
+  color: #888;
+  font-size: 22rpx;
+}
+
+/* Action Bar inside Card */
+.action-bar {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-add {
+  background: #fff;
+  color: #007aff;
+  border: 2rpx dashed #007aff;
+  font-size: 28rpx;
+  padding: 10rpx 40rpx;
+  border-radius: 40rpx;
+  width: 60%;
+}
+
+/* Total Bar */
+.total-bar {
+  margin-top: 30rpx;
+  text-align: right;
+  font-size: 28rpx;
+  color: #666;
+  border-top: 1rpx solid #eee;
+  padding-top: 20rpx;
+}
+
+.amount {
+  font-size: 40rpx;
+  color: #ff3b30;
+  font-weight: bold;
+  margin-left: 10rpx;
+}
+
+/* Footer Action */
+.footer-action {
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #007aff, #0056b3);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 24rpx 0;
+  border-radius: 50rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 122, 255, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}

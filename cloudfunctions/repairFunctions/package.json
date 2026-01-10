@@ -1,0 +1,15 @@
+{
+  "name": "repair-functions",
+  "version": "1.0.0",
+  "description": "Cloud functions for Repair App",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "pdfmake": "^0.2.7",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "node-xlsx": "^0.21.0",
+    "dayjs": "^1.11.10",
+    "axios": "^1.6.0"
+  }
+}

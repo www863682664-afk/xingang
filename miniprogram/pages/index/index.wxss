@@ -1,0 +1,101 @@
+page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.container {
+  padding: 40rpx 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  margin-bottom: 60rpx;
+  text-align: center;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+  letter-spacing: 2rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #666;
+  letter-spacing: 4rpx;
+}
+
+.menu-grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.menu-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 5rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.menu-card::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10rpx;
+  background: #007aff;
+  opacity: 0.8;
+}
+
+.menu-card:nth-child(2)::after { background: #4cd964; }
+.menu-card:nth-child(3)::after { background: #ff9500; }
+.menu-card:nth-child(4)::after { background: #5856d6; }
+
+.icon {
+  font-size: 60rpx;
+  margin-right: 30rpx;
+  width: 80rpx;
+  text-align: center;
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.card-desc {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.footer {
+  margin-top: 80rpx;
+  font-size: 24rpx;
+  color: #999;
+}

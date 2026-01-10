@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="header">
+    <view class="title">履约能力确认函</view>
+    <view class="subtitle">模块五：自定义生成履约确认函</view>
+  </view>
+
+  <view class="form-card">
+    <view class="form-group">
+      <view class="label">致函单位</view>
+      <input class="input" value="{{toCompany}}" data-field="toCompany" bindinput="handleInput" placeholder="请输入对方单位名称" />
+    </view>
+
+    <view class="form-group">
+      <view class="label-row">
+        <view class="label">项目编号</view>
+        <view class="checkbox-container" bindtap="toggleNoProjectCode">
+          <checkbox checked="{{noProjectCode}}" color="#07c160" disabled />
+          <text class="checkbox-label">无需填写</text>
+        </view>
+      </view>
+      <input class="input" value="{{projectCode}}" data-field="projectCode" bindinput="handleInput" placeholder="请输入项目编号" disabled="{{noProjectCode}}" />
+    </view>
+
+    <view class="form-group">
+      <view class="label">项目内容</view>
+      <textarea class="textarea" value="{{projectContent}}" data-field="projectContent" bindinput="handleInput" placeholder="请输入项目内容" maxlength="200" auto-height />
+    </view>
+
+    <view class="form-group">
+      <view class="label">日期</view>
+      <picker mode="date" value="{{date}}" bindchange="bindDateChange">
+        <view class="picker-view">
+          {{date || '请选择日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <button class="submit-btn" bindtap="generatePDF" loading="{{loading}}">生成PDF</button>
+  </view>
+</view>

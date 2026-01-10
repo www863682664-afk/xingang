@@ -1,0 +1,50 @@
+<view class="container">
+  <view class="hero-section" wx:if="{{!parsedData}}">
+    <view class="hero-icon">🖼️</view>
+    <view class="hero-text">导入验收单并嵌入图片</view>
+    <button class="btn btn-primary btn-large" bindtap="choosePdf">选择文件</button>
+  </view>
+
+  <view wx:if="{{parsedData}}" class="content-wrapper">
+    <view class="card">
+      <view class="section-header">
+        <text class="section-title">验收信息</text>
+        <button class="btn-mini" bindtap="choosePdf">重新导入</button>
+      </view>
+      
+      <view class="info-row">
+        <text class="label">已解析车辆</text>
+        <text class="value">{{vehicle}}</text>
+      </view>
+
+      <view class="form-group-col">
+        <text class="label-block">验收情况说明</text>
+        <textarea class="textarea" bindinput="inputDesc" placeholder="请输入详细说明..."></textarea>
+      </view>
+    </view>
+    
+    <view class="card">
+      <view class="section-header">
+        <text class="section-title">现场照片</text>
+        <text class="subtitle">{{images.length}} 张</text>
+      </view>
+      
+      <view class="image-list">
+        <block wx:for="{{images}}" wx:key="index">
+          <view class="image-item">
+            <image src="{{item}}" class="thumb" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+            <view class="delete-btn" data-index="{{index}}" bindtap="deleteImage">×</view>
+          </view>
+        </block>
+        <view class="add-btn" bindtap="chooseImages">
+          <text class="plus">+</text>
+          <text class="add-text">上传照片</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer-action">
+      <button class="btn btn-primary" bindtap="submitEmbed">生成带图 PDF</button>
+    </view>
+  </view>
+</view>

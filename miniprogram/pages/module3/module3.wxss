@@ -1,0 +1,196 @@
+/* Page Background */
+page {
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.container {
+  padding: 30rpx;
+  padding-bottom: 120rpx;
+}
+
+/* Hero Section */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 100rpx;
+  background: #fff;
+  padding: 60rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.05);
+}
+
+.hero-icon {
+  font-size: 100rpx;
+  margin-bottom: 40rpx;
+}
+
+.hero-text {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 60rpx;
+  font-weight: 500;
+}
+
+.btn-large {
+  width: 100%;
+  padding: 30rpx 80rpx;
+  font-size: 36rpx;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  padding-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  border-left: 8rpx solid #ff9500; /* Module 3 Orange */
+  padding-left: 16rpx;
+}
+
+.btn-mini {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  background: #f0f0f0;
+  color: #666;
+  border-radius: 20rpx;
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  text-align: right;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  font-size: 24rpx;
+}
+
+.tr {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.th {
+  background: #f8f9fa;
+  color: #666;
+  font-weight: bold;
+  padding: 16rpx 4rpx;
+  text-align: center;
+}
+
+.td {
+  padding: 12rpx 4rpx;
+  text-align: center;
+  border-bottom: 1rpx solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.td input {
+  width: 100%;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+/* Column Widths */
+.col-name { flex: 3; }
+.col-qty { flex: 1; }
+.col-unit { flex: 1; }
+.col-price { flex: 1.5; }
+.col-labor { flex: 1.5; }
+.col-spec { flex: 1.5; }
+.col-action { flex: 0.8; color: #ff3b30; font-weight: bold; }
+
+/* Action Bar */
+.action-bar {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-add {
+  background: #fff;
+  color: #ff9500;
+  border: 2rpx dashed #ff9500;
+  font-size: 28rpx;
+  padding: 10rpx 40rpx;
+  border-radius: 40rpx;
+  width: 60%;
+}
+
+/* Footer Action */
+.footer-action {
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff9500, #ff5e3a);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 24rpx 0;
+  border-radius: 50rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 149, 0, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* Raw Text */
+.raw-text-card {
+  background: #f9f9f9;
+  border: 1rpx solid #eee;
+}
+
+.raw-text-content {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 20rpx;
+  word-break: break-all;
+  line-height: 1.5;
+}
