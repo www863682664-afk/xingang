@@ -1,85 +1,104 @@
-# 构型助手 (Configuration Assistant)
+# 微信维修管理助手
 
 构型助手是一款基于微信小程序的团队协作工具，旨在让团队协作更轻松、高效。
 
-## 功能特性
+## 简介
 
-小程序包含以下四大核心功能模块：
+高效生成维修/保养清单与验收单，支持 PDF 导出、智能解析与图片嵌入，满足维修业务的标准化与留档需求。
 
-1.  **抽签助手 (Draw)**
-    *   随机抽取，幸运降临。
-    *   支持群组名单管理，名单存储于云端数据库，永久保存，不会因更换设备或清除缓存而丢失。
-    *   支持离线模式，无网络时可使用本地缓存数据。
+## 功能模块
 
-2.  **接龙报名 (Solitaire)**
-    *   活动统计，轻松管理。
-    *   发起新接龙，支持自定义标题、描述及多种表单项（文本、图片、多选）。
-    *   **数据持久化**：接龙群组名单永久保存（除非手动删除），接龙事件及临时文件超过30天自动清理以节省空间。
-    *   支持导入已保存的群组名单，快速发起接龙。
+- 维修清单生成（模块一）  
+  - 录入项目、数量、单位、单价、手工次数、手工单价、备注  
+  - 一键导出标准 PDF 清单
+- 验收单生成（模块二）  
+  - 录入维修/验收日期与明细  
+  - 导出标准验收单 PDF
+- PDF 单据编辑（模块三）  
+  - 导入 PDF/Excel 自动解析  
+  - 支持字段修订与再导出
+- 图片嵌入（模块四）  
+  - 批量插入现场照片到验收单
 
-3.  **文件分享 (Share)**
-    *   课件下载，投票互动。
-    *   便捷的文件分享与分发功能。
+## 关键特性
 
-4.  **文件压缩 (Compress)**
-    *   微信文件，打包导出。
-    *   支持图片、文档等文件的压缩处理。
-
-## 技术栈
-
-*   **前端**：微信小程序原生开发 (WXML, WXSS, JS, JSON)
-*   **后端**：微信云开发 (WeChat Cloud Development)
-    *   **云函数 (Cloud Functions)**：处理自动清理 (`autoClean`) 等后端逻辑。
-    *   **云数据库 (Cloud Database)**：存储群组名单 (`draw_groups`)、接龙事件等结构化数据。
-    *   **云存储 (Cloud Storage)**：存储用户上传的图片、文件等。
+- PDF 表头与布局符合业务格式：列名、列宽、行高统一
+- 数字显示规则：
+  - 输入多少就显示多少（不强制两位小数）
+  - 值为 0 的单元格留空
+  - 合计采用紧凑格式并追加“元”
+- 印章：仅在“维修清单”中显示，位置可按需微调
+- 中文字体兼容：可选提供 SimHei/Song（simhei.ttf/simsun.ttf）
 
 ## 目录结构
 
 ```
-project/
-├── cloudfunctions/        # 云函数目录
-│   ├── autoClean/         # 自动清理云函数
+xingang/
+├── miniprogram/                  # 小程序端
+│   ├── pages/
+│   │   ├── index/                # 首页入口
+│   │   ├── module1/              # 维修清单生成
+│   │   ├── module2/              # 验收单生成
+│   │   ├── module3/              # PDF单据编辑
+│   │   └── module4/              # 图片嵌入
+│   ├── app.js / app.json / app.wxss
 │   └── ...
-├── miniprogram/           # 小程序端代码
-│   ├── image/             # 图片资源 (如 background.jpg)
-│   ├── pages/             # 页面目录
-│   │   ├── index/         # 首页
-│   │   ├── draw/          # 抽签助手
-│   │   ├── solitaire/     # 接龙报名
-│   │   ├── share/         # 文件分享
-│   │   └── compress/      # 文件压缩
-│   ├── app.js             # 全局逻辑
-│   ├── app.json           # 全局配置
-│   └── app.wxss           # 全局样式
-├── project.config.json    # 项目配置文件
-└── README.md              # 项目说明文档
+├── cloudfunctions/
+│   └── repairFunctions/          # 核心云函数（PDF生成/清理等）
+└── project.config.json           # 项目配置
 ```
 
-## 部署说明
+核心文件参考：
+- 云函数主入口与 PDF 生成逻辑：[index.js](file:///Users/macbookpro/Downloads/新建文件夹/xingang/cloudfunctions/repairFunctions/index.js)
+- 维修清单页面：[module1.wxml](file:///Users/macbookpro/Downloads/新建文件夹/xingang/miniprogram/pages/module1/module1.wxml)
+- 验收单页面：[module2.wxml](file:///Users/macbookpro/Downloads/新建文件夹/xingang/miniprogram/pages/module2/module2.wxml)
+- 解析编辑页面：[module3.wxml](file:///Users/macbookpro/Downloads/新建文件夹/xingang/miniprogram/pages/module3/module3.wxml)
 
-1.  **环境准备**
-    *   下载并安装 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)。
-    *   使用微信扫码登录。
+## 环境要求
 
-2.  **导入项目**
-    *   打开微信开发者工具，选择“导入项目”，指向项目根目录。
-    *   AppID：使用您注册的小程序 AppID。
+- 微信开发者工具（最新稳定版）
+- 开通微信云开发环境（数据库/云函数/存储）
+- 可选：在云函数目录提供中文字体文件：
+  - [simhei.ttf](file:///Users/macbookpro/Downloads/新建文件夹/xingang/cloudfunctions/repairFunctions/simhei.ttf)
+  - [simsun.ttf](file:///Users/macbookpro/Downloads/新建文件夹/xingang/cloudfunctions/repairFunctions/simsun.ttf)
 
-3.  **云开发环境配置**
-    *   点击工具栏的“云开发”按钮，开通云开发环境。
-    *   **数据库集合创建**：
-        *   进入“数据库” -> 点击“+”创建集合。
-        *   必须创建集合：`draw_groups` (用于存储永久群组名单)。
-        *   其他集合根据功能自动生成或按需创建 (如 `solitaire_events`)。
-    *   **云函数部署**：
-        *   在 `cloudfunctions` 目录上右键 -> 选择环境 -> “上传并部署：云端安装依赖”。
+## 快速开始
 
-4.  **图片资源**
-    *   请确保 `miniprogram/image/` 目录下存在 `background.jpg` 文件，作为首页背景图。
+1. 导入项目  
+   - 打开微信开发者工具 → 导入 → 选择项目根目录
+2. 开通云开发  
+   - 点击“云开发” → 选择/创建环境
+3. 部署云函数  
+   - 右键 cloudfunctions/repairFunctions → 选择环境 → 上传并部署（云端安装依赖）
+4. 运行与导出  
+   - 进入模块一或模块二，填写信息后点击“导出 PDF”
 
-## 最近更新
+## 使用说明（重点规则）
 
-*   **UI 优化**：首页改版为“构型助手”，采用全屏背景图设计，功能模块悬浮于背景之上，底部渐变过渡。
-*   **交互优化**：移除了所有按钮的按压下沉动画，解决了输入时的键盘冲突问题。
-*   **数据安全**：群组名单升级为云端存储，实现了数据的永久保存和多端同步。
-*   **自动维护**：优化了自动清理逻辑，保留核心用户数据，仅清理过期临时文件。
+- 字段输入与显示
+  - “单价”“手工单价”在 PDF 中按输入原样显示；输入为 0 时单元格留空
+  - 合计采用紧凑格式（去除不必要的零），并在金额后追加“元”
+- 布局与样式
+  - 列宽：手工(次)更窄、手工费单价(元/次)更宽
+  - 行高：统一内边距，确保视觉一致
+  - 印章：维修清单中显示，位置可在云函数中数值调整
+
+## 可选配置
+
+- 中文字体  
+  - 在 repairFunctions 目录放置 simhei.ttf/simsun.ttf，可提升中文渲染效果
+- 智能解析（可选）  
+  - 云函数中预留了智能解析接口（DeepSeek）；如需使用，请在云端安全地配置 API Key
+
+## 常见问题
+
+- 导出 PDF 表头或规则未生效  
+  - 请确认已“上传并部署”最新云函数到云端
+- PDF 中文显示异常  
+  - 在云函数目录提供中文字体文件并重新部署
+- 合计或数字显示格式不符合预期  
+  - 规则见“使用说明（重点规则）”，如需个性化可调整云函数格式化逻辑
+
+## 许可
+
+本项目用于业务流程辅助与学习参考，许可与使用限制可根据实际需求补充。欢迎二次开发与定制。 
