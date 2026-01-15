@@ -89,6 +89,7 @@ page {
 .col-qty { flex: 1; }     /* 数量 */
 .col-unit { flex: 1.8; }    /* 单位 (Increased from 1) */
 .col-price { flex: 1.2; } /* 单价 */
+.col-hand { flex: 1; }
 .col-labor { flex: 1.2; } /* 手工费 */
 .col-spec { flex: 1.5; }  /* 规格 */
 .col-action { flex: 0.8; color: red; font-weight: bold;} /* 操作 */

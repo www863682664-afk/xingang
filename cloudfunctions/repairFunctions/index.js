@@ -406,9 +406,41 @@ const generatePDF = (docDefinition) => {
   });
 };
 
- 
+function computeItemAmounts(item) {
+  const qty = Number(item.quantity) || 0;
+  const price = Number(item.price) || 0;
+  const rawLaborCost = Number(item.laborCost) || 0;
+  const handCountRaw = item && item.handCount !== undefined && item.handCount !== null && item.handCount !== ''
+    ? Number(item.handCount)
+    : 0;
+  const laborUnitRaw = item && item.laborUnitPrice !== undefined && item.laborUnitPrice !== null && item.laborUnitPrice !== ''
+    ? Number(item.laborUnitPrice)
+    : 0;
+  const handCount = isNaN(handCountRaw) ? 0 : handCountRaw;
+  const laborUnitPrice = isNaN(laborUnitRaw) ? 0 : laborUnitRaw;
+  const laborTotal = handCount > 0 && laborUnitPrice > 0 ? handCount * laborUnitPrice : rawLaborCost;
+  const subtotal = qty * price + laborTotal;
+  return { qty, price, handCount, laborUnitPrice, laborTotal, subtotal };
+}
 
+function formatMoney(value) {
+  const n = Number(value);
+  if (!isFinite(n)) return '';
+  return n.toFixed(2);
+}
+
+function formatCompact(value) {
+  const n = Number(value);
+  if (!isFinite(n)) return '';
+  const rounded = Math.round(n * 1000000) / 1000000;
+  let s = String(rounded);
+  if (s.indexOf('.') >= 0) {
+    s = s.replace(/\.?0+$/, '');
+  }
+  return s;
+}
 exports.main = async (event, context) => {
+  // Handle Timer Trigger
   // Handle Timer Trigger
   if (event.Type === 'Timer' || event.type === 'timer') {
     return await handleCleanFiles();
@@ -445,11 +477,7 @@ const generatePDFFromData = async (title, data, options = {}) => {
   const { vehicle, repairUnit, repairLocation, date, items, excelHeader } = data;
   const { withSignatures } = options;
   const projectLabel = /维修/.test(title) ? '维修项目' : '保养项目';
-  
-  // Table Header matching Excel Template
-  // Columns: 序号, 维修项目, 数量, 单位, 单价, 配件总价, 手工总价, 规格型号
-  // Enforce required header order for consistency across modules
-  const headerNames = ['序号', projectLabel, '数量', '单位', '单价', '配件总价', '手工总价', '规格型号'];
+  const headerNames = ['序号', projectLabel, '数量', '单位', '配件单价\n(元)', '手工\n(次)', '手工费单价\n(元/次)', '备注'];
 
   const tableBody = [
     headerNames.map(h => ({ text: h, style: 'tableHeader', verticalAlignment: 'middle' }))
@@ -457,22 +485,18 @@ const generatePDFFromData = async (title, data, options = {}) => {
 
   let total = 0;
   items.forEach((item, index) => {
-    const qty = Number(item.quantity) || 0;
-    const price = Number(item.price) || 0;
-    const labor = Number(item.laborCost) || 0;
-    const matTotal = qty * price;
-    const rowTotal = matTotal + labor;
-    total += rowTotal;
+    const amounts = computeItemAmounts(item || {});
+    total += amounts.subtotal;
 
     tableBody.push([
-      { text: (index + 1).toString(), alignment: 'center', verticalAlignment: 'middle' },
-      { text: item.name || '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: qty.toString(), alignment: 'center', verticalAlignment: 'middle' },
-      { text: item.unit || '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(price) ? '' : String(Math.floor(price)), alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(matTotal) ? '' : String(Math.floor(matTotal)), alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(labor) ? '' : String(Math.floor(labor)), alignment: 'center', verticalAlignment: 'middle' },
-      { text: item.spec || '', alignment: 'center', verticalAlignment: 'middle' }
+      { text: (index + 1).toString(), alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: item.name || '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: String(amounts.qty || ''), alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: item.unit || '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: (item.price !== undefined && item.price !== null && Number(item.price) !== 0) ? String(item.price).trim() : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: amounts.handCount ? String(amounts.handCount) : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: (item.laborUnitPrice !== undefined && item.laborUnitPrice !== null && Number(item.laborUnitPrice) !== 0) ? String(item.laborUnitPrice).trim() : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: item.spec || '', alignment: 'center', verticalAlignment: 'middle', noWrap: true }
     ]);
   });
 
@@ -482,14 +506,14 @@ const generatePDFFromData = async (title, data, options = {}) => {
   if (currentRows < minRows) {
     for (let i = 0; i < (minRows - currentRows); i++) {
         tableBody.push([
-            { text: '', alignment: 'center' }, // Seq
-            { text: '', alignment: 'left' },   // Name
-            { text: '', alignment: 'center' }, // Qty
-            { text: '', alignment: 'center' }, // Unit
-            { text: '', alignment: 'center' }, // Price
-            { text: '', alignment: 'center' }, // Mat
-            { text: '', alignment: 'center' }, // Labor
-            { text: '', alignment: 'center' }  // Spec
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'left' },
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'center' },
+            { text: '', alignment: 'center' }
         ]);
     }
   }
@@ -501,7 +525,7 @@ const generatePDFFromData = async (title, data, options = {}) => {
   const mainTable = {
       table: {
           headerRows: 1,
-          widths: [30, '*', 30, 30, 40, 45, 45, 45],
+          widths: [30, '*', 30, 30, 40, 26, 60, 39],
           body: tableBody
       },
       layout: {
@@ -536,15 +560,15 @@ const generatePDFFromData = async (title, data, options = {}) => {
   // Footer Table (Separate)
   const footerTable = {
       table: {
-          widths: ['*'], // Full width
+          widths: ['*'],
           body: [
               [
-                  { text: '合计：' + Math.round(total), alignment: 'center', bold: true, border: [true, true, true, true] }
+                  { text: '合计：' + formatCompact(total) + '元', alignment: 'center', bold: true, border: [true, true, true, true] }
               ]
           ]
       },
-      layout: 'noBorders', // Borders handled by cell
-      margin: [0, -1, 0, 0] // Connect to above
+      layout: 'noBorders',
+      margin: [0, -1, 0, 0]
   };
   // Wait, Footer needs to look like part of the table.
   // Let's just append the footer row to tableBody as before?
@@ -563,7 +587,7 @@ const generatePDFFromData = async (title, data, options = {}) => {
   // If so, just add footer to inner table.
   
   tableBody.push([
-      { text: '合计：' + Math.round(total), colSpan: 8, alignment: 'center', bold: true },
+      { text: '合计：' + formatCompact(total) + '元', colSpan: 8, alignment: 'center', bold: true },
       {}, {}, {}, {}, {}, {}, {}
   ]);
   
@@ -611,11 +635,10 @@ const generatePDFFromData = async (title, data, options = {}) => {
   let runningTotalOuter = 0;
   for (let r = 0; r < dataRowCount; r++) {
     const itemR = r < items.length ? items[r] : null;
-    const qtyR = itemR ? (Number(itemR.quantity) || 0) : 0;
-    const priceR = itemR ? (Number(itemR.price) || 0) : 0;
-    const laborR = itemR ? (Number(itemR.laborCost) || 0) : 0;
-    const matR = qtyR * priceR;
-    runningTotalOuter += (matR + laborR);
+    const amountsR = itemR ? computeItemAmounts(itemR) : null;
+    if (amountsR) {
+      runningTotalOuter += amountsR.subtotal;
+    }
     combinedBody.push([
       { 
         text: r === targetRowIndex ? projectLabel : '', 
@@ -624,30 +647,32 @@ const generatePDFFromData = async (title, data, options = {}) => {
         border: [true, false, true, false],
         margin: r === targetRowIndex ? [0, halfRowMargin, 0, 0] : [0, 0, 0, 0],
         fontSize: r === targetRowIndex ? 12 : 10,
-        bold: r === targetRowIndex ? true : false
+        bold: r === targetRowIndex ? true : false,
+        noWrap: true
       },
       { 
         text: (itemR && String(itemR.name || '').trim()) ? (r + 1).toString() : '', 
         alignment: 'center', 
-        verticalAlignment: 'middle' 
+        verticalAlignment: 'middle',
+        noWrap: true
       },
-      { text: itemR ? (itemR.name || '') : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (qtyR.toString()) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (itemR.unit || '') : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (isNaN(priceR) ? '' : String(Math.floor(priceR))) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (isNaN(matR) ? '' : String(Math.floor(matR))) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (isNaN(laborR) ? '' : String(Math.floor(laborR))) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: itemR ? (itemR.spec || '') : '', alignment: 'center', verticalAlignment: 'middle' }
+      { text: itemR ? (itemR.name || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && amountsR ? String(amountsR.qty || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR ? (itemR.unit || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && itemR.price && Number(itemR.price) !== 0 ? String(itemR.price).trim() : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && amountsR && amountsR.handCount ? String(amountsR.handCount) : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && itemR.laborUnitPrice && Number(itemR.laborUnitPrice) !== 0 ? String(itemR.laborUnitPrice).trim() : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR ? (itemR.spec || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true }
     ]);
   }
   combinedBody.push([
-    { text: '合计：' + Math.round(runningTotalOuter), colSpan: 9, alignment: 'center', bold: true, verticalAlignment: 'middle' },
+    { text: '合计：' + formatCompact(runningTotalOuter) + '元', colSpan: 9, alignment: 'center', bold: true, verticalAlignment: 'middle' },
     {}, {}, {}, {}, {}, {}, {}, {}
   ]);
   const combinedMainTable = {
     table: {
       headerRows: 1,
-      widths: [80, 30, '*', 30, 30, 40, 45, 45, 45],
+      widths: [80, 30, '*', 30, 30, 40, 26, 60, 39],
       body: combinedBody
     },
     layout: {
@@ -730,7 +755,7 @@ const generatePDFFromData = async (title, data, options = {}) => {
         width: 140,
         absolutePosition: {
           x: pageSize.width - 180,
-          y: pageSize.height / 2 + 50
+          y: pageSize.height / 2 + 30
         },
         opacity: 0.8
       };
@@ -900,8 +925,8 @@ async function handleParsePDF(data) {
                 else if (/数量/.test(txt)) idxQty = idx;
                 else if (/单位/.test(txt)) idxUnit = idx;
                 else if (/单价/.test(txt)) idxPrice = idx;
-                else if (/手工总价|工费/.test(txt)) idxLabor = idx;
-                else if (/规格/.test(txt)) idxSpec = idx;
+                else if (/手工总价|工费|手工费单价/.test(txt)) idxLabor = idx;
+                else if (/规格|备注/.test(txt)) idxSpec = idx;
             });
             
             // Extract Data
@@ -1903,28 +1928,22 @@ async function handleEmbedImages(data) {
     descriptionContent.push({ text: ' ', margin: [0, 0, 0, 10] });
   }
 
-  // Build main acceptance table content using same layout and Excel header
-  // Enforce required header order for consistency across modules
-  const headerNames = ['序号', '维修项目', '数量', '单位', '单价', '配件总价', '手工总价', '规格型号'];
+  const headerNames = ['序号', '维修项目', '数量', '单位', '配件单价\n(元)', '手工\n(次)', '手工费单价\n(元/次)', '备注'];
   const tableBody = [
     headerNames.map(h => ({ text: h, style: 'tableHeader', verticalAlignment: 'middle' }))
   ];
   let total = 0;
   (items || []).forEach((item, index) => {
-    const qty = Number(item.quantity) || 0;
-    const price = Number(item.price) || 0;
-    const labor = Number(item.laborCost) || 0;
-    const matTotal = qty * price;
-    const rowTotal = matTotal + labor;
-    total += rowTotal;
+    const amounts = computeItemAmounts(item || {});
+    total += amounts.subtotal;
     tableBody.push([
       { text: (index + 1).toString(), alignment: 'center', verticalAlignment: 'middle' },
       { text: item.name || '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: qty.toString(), alignment: 'center', verticalAlignment: 'middle' },
+      { text: String(amounts.qty || ''), alignment: 'center', verticalAlignment: 'middle' },
       { text: item.unit || '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(price) ? '' : String(Math.floor(price)), alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(matTotal) ? '' : String(Math.floor(matTotal)), alignment: 'center', verticalAlignment: 'middle' },
-      { text: isNaN(labor) ? '' : String(Math.floor(labor)), alignment: 'center', verticalAlignment: 'middle' },
+      { text: formatMoney(amounts.price), alignment: 'center', verticalAlignment: 'middle' },
+      { text: amounts.handCount ? String(amounts.handCount) : '', alignment: 'center', verticalAlignment: 'middle' },
+      { text: formatMoney(amounts.laborUnitPrice), alignment: 'center', verticalAlignment: 'middle' },
       { text: item.spec || '', alignment: 'center', verticalAlignment: 'middle' }
     ]);
   });
@@ -1944,9 +1963,9 @@ async function handleEmbedImages(data) {
       ]);
     }
   }
-  tableBody.push([{ text: '合计：' + Math.round(total), colSpan: 8, alignment: 'center', bold: true, verticalAlignment: 'middle' }, {}, {}, {}, {}, {}, {}, {}]);
+  tableBody.push([{ text: '合计：' + formatCompact(total) + '元', colSpan: 8, alignment: 'center', bold: true, verticalAlignment: 'middle' }, {}, {}, {}, {}, {}, {}, {}]);
   const mainTable = {
-    table: { headerRows: 1, widths: [30, '*', 30, 30, 40, 45, 45, 45], body: tableBody },
+    table: { headerRows: 1, widths: [30, '*', 30, 30, 40, 28, 55, 42], body: tableBody },
     layout: {
       hLineWidth: function (i, node) { return 0.5; },
       vLineWidth: function (i, node) { return 0.5; },
@@ -1969,8 +1988,7 @@ async function handleEmbedImages(data) {
   if (displayDateAcc) {
       outerBody.push([{ text: '日期', style: 'tableHeader', alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }, { text: displayDateAcc, alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }]);
   }
-  // Combined acceptance main table consistent with other modules
-  const headerNamesAcc = ['序号', '维修项目', '数量', '单位', '单价', '配件总价', '手工总价', '规格型号'];
+  const headerNamesAcc = ['序号', '维修项目', '数量', '单位', '配件单价\n(元)', '手工\n(次)', '手工费单价\n(元/次)', '备注'];
   const dataRowCountAcc = Math.max((items || []).length, 15);
   const targetRowIndexAcc = Math.ceil(dataRowCountAcc / 2) - 1;
   const halfRowMarginAcc = (dataRowCountAcc % 2 === 0) ? 12 : 0;
@@ -1982,11 +2000,10 @@ async function handleEmbedImages(data) {
   let runningTotalAcc = 0;
   for (let r = 0; r < dataRowCountAcc; r++) {
     const ir = r < (items || []).length ? items[r] : null;
-    const qty = ir ? (Number(ir.quantity) || 0) : 0;
-    const price = ir ? (Number(ir.price) || 0) : 0;
-    const labor = ir ? (Number(ir.laborCost) || 0) : 0;
-    const mat = qty * price;
-    runningTotalAcc += (mat + labor);
+    const amountsAcc = ir ? computeItemAmounts(ir) : null;
+    if (amountsAcc) {
+      runningTotalAcc += amountsAcc.subtotal;
+    }
     combinedBodyAcc.push([
       { 
         text: r === targetRowIndexAcc ? '维修项目' : '', 
@@ -2003,22 +2020,22 @@ async function handleEmbedImages(data) {
         verticalAlignment: 'middle' 
       },
       { text: ir ? (ir.name || '') : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: ir ? (qty.toString()) : '', alignment: 'center', verticalAlignment: 'middle' },
+      { text: ir && amountsAcc ? String(amountsAcc.qty || '') : '', alignment: 'center', verticalAlignment: 'middle' },
       { text: ir ? (ir.unit || '') : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: ir ? (isNaN(price) ? '' : String(Math.floor(price))) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: ir ? (isNaN(mat) ? '' : String(Math.floor(mat))) : '', alignment: 'center', verticalAlignment: 'middle' },
-      { text: ir ? (isNaN(labor) ? '' : String(Math.floor(labor))) : '', alignment: 'center', verticalAlignment: 'middle' },
+      { text: ir && amountsAcc ? formatMoney(amountsAcc.price) : '', alignment: 'center', verticalAlignment: 'middle' },
+      { text: ir && amountsAcc && amountsAcc.handCount ? String(amountsAcc.handCount) : '', alignment: 'center', verticalAlignment: 'middle' },
+      { text: ir && amountsAcc ? formatMoney(amountsAcc.laborUnitPrice) : '', alignment: 'center', verticalAlignment: 'middle' },
       { text: ir ? (ir.spec || '') : '', alignment: 'center', verticalAlignment: 'middle' }
     ]);
   }
   // Add Total row per request
-  combinedBodyAcc.push([{ text: '总计：' + Math.round(runningTotalAcc), colSpan: 9, alignment: 'center', bold: true, verticalAlignment: 'middle' }, {}, {}, {}, {}, {}, {}, {}, {}]);
+  combinedBodyAcc.push([{ text: '总计：' + formatMoney(runningTotalAcc), colSpan: 9, alignment: 'center', bold: true, verticalAlignment: 'middle' }, {}, {}, {}, {}, {}, {}, {}, {}]);
   
   // Add signatures to the last row of the table - REMOVED per request to move it to outer table
 
 
   const combinedMainTableAcc = {
-    table: { headerRows: 1, widths: [80, 30, '*', 30, 30, 40, 45, 45, 45], body: combinedBodyAcc },
+    table: { headerRows: 1, widths: [80, 30, '*', 30, 30, 40, 28, 55, 42], body: combinedBodyAcc },
     layout: {
       hLineWidth: function (i, node) { return 0.5; },
       vLineWidth: function (i, node) { return 0.5; },
@@ -2311,3 +2328,5 @@ async function handleGeneratePerformanceLetter(data) {
 
     return { success: true, fileID: uploadResult.fileID, fileName };
 }
+
+exports.computeItemAmounts = computeItemAmounts;

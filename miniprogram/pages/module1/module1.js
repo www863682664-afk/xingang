@@ -36,7 +36,17 @@ Page({
   addRow() {
     const items = this.data.items;
     items.push({
-      name: '', quantity: 1, unit: '个', price: '', laborCost: '', spec: '', subtotal: 0, customUnitEnabled: false, customUnit: ''
+      name: '',
+      quantity: 1,
+      unit: '个',
+      price: '',
+      handCount: '',
+      laborUnitPrice: '',
+      laborCost: '',
+      spec: '',
+      subtotal: '0.00',
+      customUnitEnabled: false,
+      customUnit: ''
     });
     this.setData({ items });
     this.calculateTotal();
@@ -86,11 +96,14 @@ Page({
     
     items[index][field] = value;
     
-    // Calculate subtotal
     const qty = parseFloat(items[index].quantity) || 0;
     const price = parseFloat(items[index].price) || 0;
-    const labor = parseFloat(items[index].laborCost) || 0;
-    items[index].subtotal = (qty * price + labor).toFixed(2);
+    const handCount = parseFloat(items[index].handCount) || 0;
+    const laborUnitPrice = parseFloat(items[index].laborUnitPrice) || 0;
+    const laborCost = handCount > 0 && laborUnitPrice > 0 ? handCount * laborUnitPrice : 0;
+    items[index].laborCost = laborCost ? laborCost.toFixed(2) : '';
+    const subtotal = qty * price + laborCost;
+    items[index].subtotal = subtotal.toFixed(2);
 
     this.setData({ items });
     this.calculateTotal();

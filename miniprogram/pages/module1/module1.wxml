@@ -31,8 +31,9 @@
       <view class="col-qty th">数量</view>
       <view class="col-unit th">单位</view>
       <view class="col-price th">单价</view>
-      <view class="col-labor th">工费</view>
-      <view class="col-spec th">规格</view>
+      <view class="col-hand th">手工次数</view>
+      <view class="col-labor th">手工单价</view>
+      <view class="col-spec th">备注</view>
       <view class="col-action th">删</view>
     </view>
     <block wx:for="{{items}}" wx:key="index">
@@ -46,8 +47,9 @@
           <input wx:if="{{item.customUnitEnabled}}" value="{{item.customUnit}}" data-index="{{index}}" bindinput="onUnitInput" placeholder="输入单位" style="flex: 1; margin-left: 5rpx; text-align: center; border-bottom: 1px solid #ccc;" />
         </view>
         <view class="td col-price"><input type="digit" value="{{item.price}}" data-index="{{index}}" data-field="price" bindinput="inputItem" placeholder=""/></view>
-        <view class="td col-labor"><input type="digit" value="{{item.laborCost}}" data-index="{{index}}" data-field="laborCost" bindinput="inputItem" placeholder=""/></view>
-        <view class="td col-spec"><input value="{{item.spec}}" data-index="{{index}}" data-field="spec" bindinput="inputItem" placeholder="规格"/></view>
+        <view class="td col-hand"><input type="number" value="{{item.handCount}}" data-index="{{index}}" data-field="handCount" bindinput="inputItem" placeholder="0"/></view>
+        <view class="td col-labor"><input type="digit" value="{{item.laborUnitPrice}}" data-index="{{index}}" data-field="laborUnitPrice" bindinput="inputItem" placeholder="0"/></view>
+        <view class="td col-spec"><input value="{{item.spec}}" data-index="{{index}}" data-field="spec" bindinput="inputItem" placeholder="备注"/></view>
         <view class="td col-action" bindtap="deleteRow" data-index="{{index}}">×</view>
       </view>
       <view class="tr sum-row">
