@@ -3,6 +3,7 @@ const app = getApp();
 Page({
   data: {
     type: 'repair',
+    templateVersion: 'v1',
     vehicle: '',
     repairUnit: '九江星昂汽车服务有限公司',
     repairLocation: '九江市柴桑区美的国宾府2栋',
@@ -18,6 +19,65 @@ Page({
     // Set default date
     const today = new Date().toISOString().split('T')[0];
     this.setData({ date: today });
+  },
+
+  switchTemplate() {
+    const currentVersion = this.data.templateVersion;
+    const nextVersion = currentVersion === 'v1' ? 'v2' : 'v1';
+    const items = this.data.items;
+
+    // Data migration logic
+    items.forEach(item => {
+      if (currentVersion === 'v1' && nextVersion === 'v2') {
+        // V1 -> V2: Migrate calculated labor to laborCost field if empty
+        const hc = parseFloat(item.handCount) || 0;
+        const up = parseFloat(item.laborUnitPrice) || 0;
+        const v1Labor = (hc > 0 && up > 0) ? hc * up : 0;
+        const v2Labor = parseFloat(item.laborCost) || 0;
+        
+        if (v2Labor === 0 && v1Labor > 0) {
+          item.laborCost = v1Labor.toFixed(2);
+        }
+      } else if (currentVersion === 'v2' && nextVersion === 'v1') {
+        // V2 -> V1: Migrate laborCost to handCount/Price if empty
+        const v2Labor = parseFloat(item.laborCost) || 0;
+        const hc = parseFloat(item.handCount) || 0;
+        const up = parseFloat(item.laborUnitPrice) || 0;
+        const v1Labor = (hc > 0 && up > 0) ? hc * up : 0;
+
+        if (v1Labor === 0 && v2Labor > 0) {
+          item.handCount = 1;
+          item.laborUnitPrice = v2Labor.toFixed(2);
+        }
+      }
+    });
+
+    this.setData({ 
+      templateVersion: nextVersion,
+      items: items
+    });
+    this.recalculateAll();
+  },
+
+  recalculateAll() {
+    const items = this.data.items;
+    const isV2 = this.data.templateVersion === 'v2';
+    let total = 0;
+    items.forEach(item => {
+      const qty = parseFloat(item.quantity) || 0;
+      const price = parseFloat(item.price) || 0;
+      let labor = 0;
+      if (isV2) {
+         labor = parseFloat(item.laborCost) || 0;
+      } else {
+         const hc = parseFloat(item.handCount) || 0;
+         const up = parseFloat(item.laborUnitPrice) || 0;
+         labor = (hc > 0 && up > 0) ? hc * up : 0;
+      }
+      item.subtotal = (qty * price + labor).toFixed(2);
+      total += parseFloat(item.subtotal);
+    });
+    this.setData({ items, totalAmount: total.toFixed(2) });
   },
 
   switchType(e) {
@@ -49,7 +109,7 @@ Page({
       customUnit: ''
     });
     this.setData({ items });
-    this.calculateTotal();
+    this.recalculateAll();
   },
 
   deleteRow(e) {
@@ -58,7 +118,7 @@ Page({
     if (items.length > 1) {
       items.splice(index, 1);
       this.setData({ items });
-      this.calculateTotal();
+      this.recalculateAll();
     } else {
       wx.showToast({ title: '至少保留一行', icon: 'none' });
     }
@@ -96,17 +156,11 @@ Page({
     
     items[index][field] = value;
     
-    const qty = parseFloat(items[index].quantity) || 0;
-    const price = parseFloat(items[index].price) || 0;
-    const handCount = parseFloat(items[index].handCount) || 0;
-    const laborUnitPrice = parseFloat(items[index].laborUnitPrice) || 0;
-    const laborCost = handCount > 0 && laborUnitPrice > 0 ? handCount * laborUnitPrice : 0;
-    items[index].laborCost = laborCost ? laborCost.toFixed(2) : '';
-    const subtotal = qty * price + laborCost;
-    items[index].subtotal = subtotal.toFixed(2);
-
+    // Update local data first
     this.setData({ items });
-    this.calculateTotal();
+    
+    // Recalculate totals based on template version
+    this.recalculateAll();
   },
 
   calculateTotal() {
@@ -135,6 +189,7 @@ Page({
           repairUnit: this.data.repairUnit,
           repairLocation: this.data.repairLocation,
           date: '',
+          templateVersion: this.data.templateVersion,
           items: this.data.items
         }
       },

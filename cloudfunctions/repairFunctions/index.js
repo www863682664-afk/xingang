@@ -473,7 +473,7 @@ exports.main = async (event, context) => {
   }
 };
 
-const generatePDFFromData = async (title, data, options = {}) => {
+const generatePDFFromDataV1 = async (title, data, options = {}) => {
   const { vehicle, repairUnit, repairLocation, date, items, excelHeader } = data;
   const { withSignatures } = options;
   const projectLabel = /维修/.test(title) ? '维修项目' : '保养项目';
@@ -672,7 +672,7 @@ const generatePDFFromData = async (title, data, options = {}) => {
   const combinedMainTable = {
     table: {
       headerRows: 1,
-      widths: [80, 30, '*', 30, 30, 40, 26, 60, 39],
+      widths: [80, 30, '*', 30, 30, 40, 45, 40, 50],
       body: combinedBody
     },
     layout: {
@@ -765,15 +765,205 @@ const generatePDFFromData = async (title, data, options = {}) => {
   return await generatePDF(docDefinition);
 };
 
+const generatePDFFromDataV2 = async (title, data, options = {}) => {
+  const { vehicle, repairUnit, repairLocation, date, items, excelHeader } = data;
+  const { withSignatures } = options;
+  const projectLabel = /维修/.test(title) ? '维修项目' : '保养项目';
+  
+  const headerNames = ['序号', projectLabel, '数量', '单位', '单价', '配件总价', '手工总价', '规格型号'];
+  const minRows = 15;
+  const dataRowCount = Math.max(items.length, minRows);
+  const targetRowIndex = Math.ceil(dataRowCount / 2) - 1;
+  const halfRowMargin = (dataRowCount % 2 === 0) ? 12 : 0;
+  const combinedBody = [];
+  
+  combinedBody.push([
+    { text: '', alignment: 'center', verticalAlignment: 'middle', border: [true, false, true, false] },
+    ...headerNames.map(h => ({ text: h, style: 'tableHeader', verticalAlignment: 'middle' }))
+  ]);
+  
+  let runningTotalOuter = 0;
+  for (let r = 0; r < dataRowCount; r++) {
+    const itemR = r < items.length ? items[r] : null;
+    const amountsR = itemR ? computeItemAmounts(itemR) : null;
+    if (amountsR) {
+      runningTotalOuter += amountsR.subtotal;
+    }
+    
+    const matTotal = (amountsR && amountsR.qty && amountsR.price) ? (amountsR.qty * amountsR.price) : 0;
+    
+    combinedBody.push([
+      { 
+        text: r === targetRowIndex ? projectLabel : '', 
+        alignment: 'center', 
+        verticalAlignment: 'middle',
+        border: [true, false, true, false],
+        margin: r === targetRowIndex ? [0, halfRowMargin, 0, 0] : [0, 0, 0, 0],
+        fontSize: r === targetRowIndex ? 12 : 10,
+        bold: r === targetRowIndex ? true : false,
+        noWrap: true
+      },
+      { 
+        text: (itemR && String(itemR.name || '').trim()) ? (r + 1).toString() : '', 
+        alignment: 'center', 
+        verticalAlignment: 'middle',
+        noWrap: true
+      },
+      { text: itemR ? (itemR.name || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && amountsR ? String(amountsR.qty || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR ? (itemR.unit || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && itemR.price && Number(itemR.price) !== 0 ? String(Math.floor(Number(itemR.price))) : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: matTotal ? String(Math.floor(matTotal)) : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR && amountsR && amountsR.laborTotal ? String(Math.floor(amountsR.laborTotal)) : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true },
+      { text: itemR ? (itemR.spec || '') : '', alignment: 'center', verticalAlignment: 'middle', noWrap: true }
+    ]);
+  }
+  
+  combinedBody.push([
+    { text: '合计：' + formatCompact(runningTotalOuter) + '元', colSpan: 9, alignment: 'center', bold: true, verticalAlignment: 'middle' },
+    {}, {}, {}, {}, {}, {}, {}, {}
+  ]);
+
+  const combinedMainTable = {
+    table: {
+      headerRows: 1,
+      widths: [80, 30, '*', 30, 30, 40, 45, 40, 50],
+      body: combinedBody
+    },
+    layout: {
+      hLineWidth: function (i, node) { return 0.5; },
+      vLineWidth: function (i, node) { return 0.5; },
+      hLineColor: function (i, node) { return 'black'; },
+      vLineColor: function (i, node) { return 'black'; },
+      paddingLeft: function(i, node) { return 2; },
+      paddingRight: function(i, node) { return 2; },
+      paddingTop: function(i, node) { return 8; },
+      paddingBottom: function(i, node) { return 8; }
+    }
+  };
+
+  const displayDate = date ? dayjs(date).format('YYYY-MM-DD') : '';
+  const headerRows = [];
+  headerRows.push([
+    { text: '维修车辆:', alignment: 'center', bold: true, verticalAlignment: 'middle', margin: [0,6,0,6] },
+    { text: vehicle || '', alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }
+  ]);
+  headerRows.push([
+    { text: '维修单位:', alignment: 'center', bold: true, verticalAlignment: 'middle', margin: [0,6,0,6] },
+    { text: repairUnit || '', alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }
+  ]);
+  headerRows.push([
+    { text: '维修地点:', alignment: 'center', bold: true, verticalAlignment: 'middle', margin: [0,6,0,6] },
+    { text: repairLocation || '', alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }
+  ]);
+  if (displayDate) {
+    headerRows.push([
+      { text: '日期:', alignment: 'center', bold: true, verticalAlignment: 'middle', margin: [0,6,0,6] },
+      { text: displayDate, alignment: 'center', verticalAlignment: 'middle', margin: [0,6,0,6] }
+    ]);
+  }
+
+  const outerBody = [];
+  outerBody.push([
+    { text: title, style: 'header', verticalAlignment: 'middle', colSpan: 2 },
+    {}
+  ]);
+  headerRows.forEach(r => outerBody.push(r));
+  
+  outerBody.push([{ ...combinedMainTable, colSpan: 2 }, {}]);
+  
+  if (withSignatures) {
+    outerBody.push([
+      {
+        colSpan: 2,
+        table: {
+          widths: [110, '*'],
+          body: [[
+            { text: '验收人:', alignment: 'left', verticalAlignment: 'middle', border: [true,true,true,true], margin: [6,6,0,6] },
+            { text: '审核人:', alignment: 'center', verticalAlignment: 'middle', border: [true,true,true,true], margin: [6,6,0,6] }
+          ]]
+        },
+        layout: {
+          hLineWidth: function() { return 0; },
+          vLineWidth: function() { return 0; },
+          paddingLeft: function() { return 0; },
+          paddingRight: function() { return 0; },
+          paddingTop: function() { return 0; },
+          paddingBottom: function() { return 0; }
+        }
+      },
+      {}
+    ]);
+  }
+  
+  outerBody.push([{ text: '注: 总价包含1%增值税', colSpan: 2, alignment: 'center', verticalAlignment: 'middle' }, {}]);
+  
+  const content = [
+    {
+      table: {
+        widths: [80, '*'],
+        body: outerBody
+      },
+      layout: {
+         hLineWidth: function (i, node) { return 0.5; },
+         vLineWidth: function (i, node) { return 0.5; },
+         hLineColor: function (i, node) { return 'black'; },
+         vLineColor: function (i, node) { return 'black'; },
+         paddingTop: function(i, node) { return 0; },
+         paddingBottom: function(i, node) { return 0; },
+         paddingLeft: function(i, node) { return 0; },
+         paddingRight: function(i, node) { return 0; }
+      }
+    }
+  ];
+
+  const docDefinition = {
+    content: content,
+    defaultStyle: {
+      font: hasSimSunFont ? 'SimSun' : (hasCustomFont ? 'SimHei' : 'Roboto'),
+      fontSize: 10,
+      alignment: 'center'
+    },
+    styles: {
+      header: { fontSize: 18, bold: true },
+      tableHeader: { bold: true, fontSize: 10, alignment: 'center' }
+    }
+  };
+  
+  const stampPath = path.join(__dirname, 'stamp.png');
+  if (/维修清单/.test(title) && fs.existsSync(stampPath)) {
+    docDefinition.background = function(currentPage, pageSize) {
+      return {
+        image: stampPath,
+        width: 140,
+        absolutePosition: {
+          x: pageSize.width - 180,
+          y: pageSize.height / 2 + 30
+        },
+        opacity: 0.8
+      };
+    };
+  }
+
+  return await generatePDF(docDefinition);
+};
+
+const generatePDFFromData = async (title, data, options = {}) => {
+    if (data.templateVersion === 'v2') {
+        return await generatePDFFromDataV2(title, data, options);
+    }
+    return await generatePDFFromDataV1(title, data, options);
+};
+
 // Modified Handlers to return PDF
 async function handleGenerateList(data) {
-  const { type, vehicle, repairUnit, repairLocation, date, items, excelHeader } = data;
+  const { type, vehicle, repairUnit, repairLocation, date, items, excelHeader, templateVersion } = data;
   const title = type === 'repair' ? '维修清单' : '保养清单';
   const displayDate = date || '';
 
   // Use PDF generation instead of Excel
   const pdfBuffer = await generatePDFFromData(title, {
-      vehicle, repairUnit, repairLocation, date: displayDate, items, excelHeader
+      vehicle, repairUnit, repairLocation, date: displayDate, items, excelHeader, templateVersion
   }, { withSignatures: false });
 
   const uploadResult = await cloud.uploadFile({
@@ -792,7 +982,7 @@ async function handleGenerateList(data) {
 }
 
 async function handleGenerateAcceptance(data) {
-  const { type, vehicle, repairUnit, repairLocation, repairDate, acceptanceDate, items, excelHeader } = data;
+  const { type, vehicle, repairUnit, repairLocation, repairDate, acceptanceDate, items, excelHeader, templateVersion } = data;
   const title = type === 'repair' ? '维修验收单' : '保养验收单';
   
   // Use PDF generation
@@ -802,7 +992,8 @@ async function handleGenerateAcceptance(data) {
       repairLocation, 
       date: acceptanceDate || repairDate, // Use acceptance date as primary
       items,
-      excelHeader
+      excelHeader,
+      templateVersion
   }, { withSignatures: true });
 
   const uploadResult = await cloud.uploadFile({
